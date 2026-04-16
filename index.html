@@ -353,6 +353,7 @@
             -webkit-appearance: none;
             margin: 0;
         }
+
         input[type="number"] {
             -moz-appearance: textfield;
         }
@@ -730,7 +731,8 @@
         </div>
         <div class="tbtns">
             <button class="btn btn-out" onclick="window.print()">🖨 Print</button>
-            <button type="button" class="btn btn-out" onclick="testDummyDownload()" style="background:#fef08a; border-color:#eab308; color:#854d0e;">🧪 Test Dummy Data</button>
+            <button type="button" class="btn btn-out" onclick="testDummyDownload()"
+                style="background:#fef08a; border-color:#eab308; color:#854d0e;">🧪 Test Dummy Data</button>
             <button class="btn btn-blue" id="dlBtn" onclick="handleDownload()">⬇ Download .docx</button>
         </div>
     </div>
@@ -793,7 +795,7 @@
                 </p>
 
                 <!-- ▌ FAMILY TABLE -->
-                <div class="sec-hd">Family Composition of <span id="m_year2">2026</span> with Income Details of <span
+                <div class="sec-hd" style="text-align: left;">(A) Family Composition of <span id="m_year2">2026</span> with Income Details of <span
                         id="m_year3">2025</span> :</div>
 
                 <div class="tbl-wrap">
@@ -822,7 +824,7 @@
                 </div>
 
                 <!-- ▌ NO PROPERTY HEADING -->
-                <div class="sec-hd">NO PROPERTY DETAILS AS PER 31<sup>ST</sup> DECEMBER <span id="m_year5">2025</span> .
+                <div class="sec-hd" style="text-align: left;">(B) NO PROPERTY DETAILS AS PER 31<sup>ST</sup> DECEMBER <span id="m_year5">2025</span> .
                 </div>
 
                 <!-- Main no-property paragraph -->
@@ -1152,7 +1154,7 @@
                 let code = '';
                 let refN = fName;
                 let refT = 'Mr.';
-                
+
                 if (rel === 'Myself' || rel === 'Myself (Applicant)' || rel === 'Sister') {
                     code = isFemale(title) ? 'D/O' : 'S/O';
                 } else if (rel === 'Brother') {
@@ -1196,7 +1198,7 @@
     <td>
       <select class="ti" data-col="rel" required>
         <option value="" disabled selected>— Select —</option>
-        <option value="Myself (Applicant)">Myself (Applicant)</option>
+        <option value="Myself">Myself</option>
         <option value="Father">Father</option>
         <option value="Mother">Mother</option>
         <option value="Brother">Brother</option>
@@ -1418,7 +1420,7 @@
                     let code = '';
                     let refN = fName;
                     let refT = 'Mr.';
-                    
+
                     if (m.rel === 'Myself' || m.rel === 'Myself (Applicant)' || m.rel === 'Sister') {
                         code = isFemale(m.title) ? 'D/O' : 'S/O';
                     } else if (m.rel === 'Brother') {
@@ -1457,9 +1459,13 @@
                 sections: [{
                     properties: { page: { margin: { top: 720, bottom: 720, left: 900, right: 900 } } },
                     children: [
-                        cPar([rb('GOVERNMENT OF INDIA', { size: H }), br(), rb(`GOVERNMENT OF ${data.state.toUpperCase()}`, { size: H })], { after: 60 }),
+                        cPar([new TextRun({ text: 'GOVERNMENT OF INDIA', bold: true, font: 'Calibri', size: H, underline: { type: 'single' } }), br(), new TextRun({ text: `GOVERNMENT OF ${data.state.toUpperCase()}`, bold: true, font: 'Calibri', size: H, underline: { type: 'single' } })], { after: 60 }),
                         cPar([ul('CERTIFICATE OF FAMILY COMPOSITION, INCOME & NO PROPERTY', true)], { after: 40 }),
-                        cPar([rb('STATEMENT OF AFFAIRS AS ON 31'), supb('ST'), rb(` DECEMBER ${data.year}`)], { after: 200 }),
+                        cPar([
+                            new TextRun({ text: 'STATEMENT OF AFFAIRS AS ON 31', bold: true, font: 'Calibri', size: N, underline: { type: 'single' } }),
+                            new TextRun({ text: 'ST', superScript: true, bold: true, font: 'Calibri', size: N, underline: { type: 'single' } }),
+                            new TextRun({ text: ` DECEMBER ${data.year}`, bold: true, font: 'Calibri', size: N, underline: { type: 'single' } })
+                        ], { after: 200 }),
 
                         jPar([
                             r('This is to certify that '), r(data.appTitle + ' '), rb(data.appName),
@@ -1469,14 +1475,14 @@
                         ], { before: 0, after: 0 }),
                         new Paragraph({ children: [br()] }),
 
-                        cPar([ul(`FAMILY COMPOSITION OF ${data.nextYear} WITH INCOME DETAILS OF ${data.year} :`, true)], { after: 60 }),
+                        lPar([ul(`(A) FAMILY COMPOSITION OF ${data.nextYear} WITH INCOME DETAILS OF ${data.year} :`, true)], { after: 60 }),
                         famTable,
 
                         jPar([rb('NOTE: '), r(`The average official exchange rate @ 1 Euro = INR ${data.rate} for year ${data.year} .`)], { before: 100, after: 0 }),
                         new Paragraph({ children: [br()] }),
 
-                        cPar([
-                            new TextRun({ text: 'NO PROPERTY DETAILS AS PER 31', bold: true, font: 'Calibri', size: N, underline: { type: 'single' } }),
+                        lPar([
+                            new TextRun({ text: '(B) NO PROPERTY DETAILS AS PER 31', bold: true, font: 'Calibri', size: N, underline: { type: 'single' } }),
                             new TextRun({ text: 'ST', superScript: true, font: 'Calibri', size: N, underline: { type: 'single' } }),
                             new TextRun({ text: ` DECEMBER ${data.year} .`, bold: true, font: 'Calibri', size: N, underline: { type: 'single' } })
                         ], { after: 60 }),
@@ -1507,7 +1513,6 @@
                                 })
                             ]
                         }),
-                        new Paragraph({ children: [br()] }),
                         ...bulletParas,
                         new Paragraph({ children: [br()] }),
 
@@ -1570,7 +1575,7 @@
             const dummyMembers = [
                 { title: 'Mr.', name: 'Rajesh Sharma', dob: '1975-04-12', rel: 'Father', occ: 'Private Job', income: '450000' },
                 { title: 'Mrs.', name: 'Anita Sharma', dob: '1979-08-23', rel: 'Mother', occ: 'Housewife', income: 'NIL' },
-                { title: 'Ms.', name: 'Priya Sharma', dob: '2004-01-15', rel: 'Myself (Applicant)', occ: 'Student', income: 'NIL' },
+                { title: 'Ms.', name: 'Priya Sharma', dob: '2004-01-15', rel: 'Myself', occ: 'Student', income: 'NIL' },
                 { title: 'Mr.', name: 'Harshit Sharma', dob: '2008-05-10', rel: 'Brother', occ: 'Student', income: 'NIL' },
                 { title: 'Ms.', name: 'Kritika Sharma', dob: '2010-09-22', rel: 'Sister', occ: 'Student', income: 'NIL' }
             ];
