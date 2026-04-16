@@ -305,6 +305,7 @@
             vertical-align: baseline;
             transition: border-color .15s, background .15s;
             min-width: 110px;
+            field-sizing: content;
         }
 
         .bl:focus {
@@ -343,6 +344,17 @@
 
         select.bl {
             cursor: pointer;
+            padding-right: 36px;
+        }
+
+        /* Hide number spinners */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
 
         select.bl:invalid {
@@ -385,8 +397,8 @@
         }
 
         .fam-tbl thead tr {
-            background: #1e3a8a;
-            color: #fff;
+            background: transparent;
+            color: var(--ink);
         }
 
         .fam-tbl thead th {
@@ -395,7 +407,8 @@
             font-size: 11px;
             letter-spacing: .04em;
             text-align: center;
-            border-right: 1px solid rgba(255, 255, 255, .18);
+            border-right: 1px solid #bbb;
+            border-bottom: 1px solid #bbb;
             white-space: nowrap;
         }
 
@@ -410,7 +423,7 @@
         }
 
         .fam-tbl tbody tr:nth-child(even) {
-            background: #f7fafc;
+            background: transparent;
         }
 
         .fam-tbl tbody tr:hover {
@@ -717,6 +730,7 @@
         </div>
         <div class="tbtns">
             <button class="btn btn-out" onclick="window.print()">🖨 Print</button>
+            <button type="button" class="btn btn-out" onclick="testDummyDownload()" style="background:#fef08a; border-color:#eab308; color:#854d0e;">🧪 Test Dummy Data</button>
             <button class="btn btn-blue" id="dlBtn" onclick="handleDownload()">⬇ Download .docx</button>
         </div>
     </div>
@@ -1031,6 +1045,27 @@
             return val('dadName') || '________';
         }
 
+        function updateAutoWidth(el) {
+            if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'SELECT')) return;
+            const temp = document.createElement('span');
+            temp.style.visibility = 'hidden';
+            temp.style.position = 'absolute';
+            temp.style.whiteSpace = 'pre';
+            temp.style.font = window.getComputedStyle(el).font;
+            temp.style.textTransform = window.getComputedStyle(el).textTransform;
+            temp.style.letterSpacing = window.getComputedStyle(el).letterSpacing;
+            if (el.tagName === 'SELECT') {
+                temp.textContent = el.options[el.selectedIndex]?.text || '';
+            } else {
+                temp.textContent = el.value || el.placeholder || '';
+            }
+            document.body.appendChild(temp);
+            const basePadding = (el.tagName === 'SELECT') ? 45 : 14;
+            const w = temp.getBoundingClientRect().width + basePadding;
+            el.style.width = w + 'px';
+            document.body.removeChild(temp);
+        }
+
         /* ───────────────────────────────────────────
            LIVE UPDATE — runs on every keystroke
         ─────────────────────────────────────────── */
@@ -1079,6 +1114,9 @@
 
             // Rebuild bullets
             rebuildBullets();
+
+            // Auto-expand all fill-in-the-blanks based on text length
+            document.querySelectorAll('.bl').forEach(updateAutoWidth);
         }
 
         /* ───────────────────────────────────────────
@@ -1109,19 +1147,29 @@
                 const rel = relSel?.value || '';
                 const occ = occInp?.value.trim() || '';
 
-                if (!name || !rel) return;
+                if (!name || !rel || rel === 'Father') return;
 
-                const isSelf = (rel === 'Myself' || rel === 'Myself (Applicant)');
-                // Changed format from W/O to full textual relation (e.g., "mother of") referencing the Applicant
-                const code = isSelf ? (isFemale(title) ? 'D/O' : 'S/O') : (rel.toLowerCase() + ' of');
-                const refN = isSelf ? fName : aName;
-                const refT = isSelf ? 'Mr.' : aTitle;
+                let code = '';
+                let refN = fName;
+                let refT = 'Mr.';
+                
+                if (rel === 'Myself' || rel === 'Myself (Applicant)' || rel === 'Sister') {
+                    code = isFemale(title) ? 'D/O' : 'S/O';
+                } else if (rel === 'Brother') {
+                    code = 'S/O';
+                } else if (rel === 'Mother' || rel === 'Spouse') {
+                    code = 'W/O';
+                } else {
+                    code = `${rel.toLowerCase()} of`;
+                    refN = aName;
+                    refT = aTitle;
+                }
 
                 const occ_l = occLabel(occ, rel);
                 const sbj = subjPron(title);
                 const pss = possPron(title);
 
-                html += `<li style="margin-bottom:8px;">${title} ${name} <b>${code}</b> ${refT} <b>${refN}</b> is ${occ_l}; ${sbj} does not have any movable or immovable property on ${pss} own. As on 31<sup>st</sup> December ${startYear}.</li>`;
+                html += `<li style="margin-bottom:8px;"><b>${title} ${name} ${code} ${refT} ${refN}</b> is ${occ_l}; ${sbj} does not have any movable or immovable property on ${pss} own. As on 31<sup>st</sup> December ${startYear}.</li>`;
             });
 
             ul.innerHTML = html || '<li><span class="ph-msg">Fill Name and Relationship for each row.</span></li>';
@@ -1148,14 +1196,11 @@
     <td>
       <select class="ti" data-col="rel" required>
         <option value="" disabled selected>— Select —</option>
+        <option value="Myself (Applicant)">Myself (Applicant)</option>
         <option value="Father">Father</option>
         <option value="Mother">Mother</option>
         <option value="Brother">Brother</option>
         <option value="Sister">Sister</option>
-        <option value="Spouse">Spouse</option>
-        <option value="Grandfather">Grandfather</option>
-        <option value="Grandmother">Grandmother</option>
-        <option value="Other">Other</option>
       </select>
     </td>
     <td><input class="ti" data-col="occ"    type="text" placeholder="e.g. Student / Private Job" required></td>
@@ -1237,7 +1282,7 @@
                     : '';
 
                 const incNum = parseFloat(income.replace(/[^0-9.]/g, ''));
-                const isNil = income.toUpperCase() === 'NIL' || income === '';
+                const isNil = /^\s*nil\s*$/i.test(income) || income.trim() === '' || incNum === 0 || isNaN(incNum);
                 const euroAnn = (!isNaN(incNum) && incNum > 0 && !isNil)
                     ? ` (EURO- ${(incNum / rate).toFixed(2)})`
                     : '';
@@ -1312,12 +1357,12 @@
             } = window.docx;
 
             const N = 22; // 11 pt
-            const NB = 24; // 12 pt
-            const H = 26; // 13 pt
+            const NB = 22; // 11 pt
+            const H = 22; // 11 pt
 
-            const r = (t, o = {}) => new TextRun({ text: t, font: 'Times New Roman', size: N, ...o });
+            const r = (t, o = {}) => new TextRun({ text: t, font: 'Calibri', size: N, ...o });
             const rb = (t, o = {}) => r(t, { bold: true, ...o });
-            const sup = (t) => new TextRun({ text: t, font: 'Times New Roman', size: N, superScript: true });
+            const sup = (t) => new TextRun({ text: t, font: 'Calibri', size: N, superScript: true });
             const br = () => new TextRun({ break: 1 });
 
             const cPar = (ch, sp = {}) => new Paragraph({ alignment: AlignmentType.CENTER, children: ch, spacing: { after: 120, ...sp } });
@@ -1330,8 +1375,8 @@
             function mkCell(text, bold = false, center = false, shade = false) {
                 return new TableCell({
                     children: [new Paragraph({
-                        alignment: center ? AlignmentType.CENTER : AlignmentType.BOTH,
-                        children: [new TextRun({ text, bold, font: 'Times New Roman', size: N, color: shade ? 'FFFFFF' : '000000' })],
+                        alignment: center ? AlignmentType.CENTER : AlignmentType.LEFT,
+                        children: [new TextRun({ text, bold, font: 'Calibri', size: N, color: shade ? 'FFFFFF' : '000000' })],
                     })],
                     shading: shade ? { fill: '1E3A8A' } : undefined,
                     margins: { top: 60, bottom: 60, left: 100, right: 100 },
@@ -1342,7 +1387,7 @@
                 tableHeader: true,
                 children: [
                     ['Sr. No', 'Name of Member', 'Date of Birth', 'Relationship', 'Occupation', `Gross Income for the Year-${data.year}`]
-                        .map(h => mkCell(h, true, true, true)),
+                        .map(h => mkCell(h, true, true, false)),
                 ].flat(),
             });
 
@@ -1368,12 +1413,23 @@
             const aTitle = data.appTitle;
 
             const bulletParas = data.members
-                .filter(m => m.name && m.rel)
+                .filter(m => m.name && m.rel && m.rel !== 'Father')
                 .map(m => {
-                    const isSelf = (m.rel === 'Myself' || m.rel === 'Myself (Applicant)');
-                    const code = isSelf ? (isFemale(m.title) ? 'D/O' : 'S/O') : (m.rel.toLowerCase() + ' of');
-                    const refN = isSelf ? fName : aName;
-                    const refT = isSelf ? 'Mr.' : aTitle;
+                    let code = '';
+                    let refN = fName;
+                    let refT = 'Mr.';
+                    
+                    if (m.rel === 'Myself' || m.rel === 'Myself (Applicant)' || m.rel === 'Sister') {
+                        code = isFemale(m.title) ? 'D/O' : 'S/O';
+                    } else if (m.rel === 'Brother') {
+                        code = 'S/O';
+                    } else if (m.rel === 'Mother' || m.rel === 'Spouse') {
+                        code = 'W/O';
+                    } else {
+                        code = `${m.rel.toLowerCase()} of`;
+                        refN = aName;
+                        refT = aTitle;
+                    }
 
                     const occ_l = occLabel(m.occ, m.rel);
                     const sbj = subjPron(m.title);
@@ -1381,56 +1437,77 @@
 
                     return new Paragraph({
                         alignment: AlignmentType.BOTH,
+                        bullet: { level: 0 },
                         children: [
-                            r(`${m.title} ${m.name} `),
-                            rb(`${code} `),
-                            r(`${refT} `),
-                            rb(refN),
+                            rb(`${m.title} ${m.name} ${code} ${refT} ${refN}`),
                             r(` is ${occ_l}; ${sbj} does not have any movable or immovable property on ${pss} own. As on 31`),
                             sup('st'),
-                            r(` December ${data.year} .`),
+                            r(` December ${data.year}.`),
                         ],
                         spacing: { before: 40, after: 100 },
                     });
                 });
 
-            const ul = (t, bold = false) => new TextRun({ text: t, bold, font: 'Times New Roman', size: H, underline: { type: 'single' } });
+            const ul = (t, bold = false) => new TextRun({ text: t, bold, font: 'Calibri', size: N, underline: { type: 'single' } });
+            const supb = (t) => new TextRun({ text: t, font: 'Calibri', size: N, superScript: true, bold: true });
             const appRel = (aTitle === 'Mr.' ? 'S/O' : 'D/O');
 
             const doc = new Document({
-                styles: { default: { document: { run: { font: 'Times New Roman', size: N } } } },
+                styles: { default: { document: { run: { font: 'Calibri', size: N } } } },
                 sections: [{
                     properties: { page: { margin: { top: 720, bottom: 720, left: 900, right: 900 } } },
                     children: [
                         cPar([rb('GOVERNMENT OF INDIA', { size: H }), br(), rb(`GOVERNMENT OF ${data.state.toUpperCase()}`, { size: H })], { after: 60 }),
                         cPar([ul('CERTIFICATE OF FAMILY COMPOSITION, INCOME & NO PROPERTY', true)], { after: 40 }),
-                        cPar([r('STATEMENT OF AFFAIRS AS ON 31'), sup('ST'), r(` DECEMBER ${data.year}`)], { after: 300 }),
+                        cPar([rb('STATEMENT OF AFFAIRS AS ON 31'), supb('ST'), rb(` DECEMBER ${data.year}`)], { after: 200 }),
 
                         jPar([
                             r('This is to certify that '), r(data.appTitle + ' '), rb(data.appName),
                             r(` ${appRel} Mr. `), rb(data.dadName),
                             r(' is a resident of '), rb(data.address),
                             r('. Annual Income as on 31'), sup('st'), r(` December ${data.year} is stated as in the table below.`),
-                        ], { before: 0, after: 220 }),
+                        ], { before: 0, after: 0 }),
+                        new Paragraph({ children: [br()] }),
 
-                        cPar([ul(`FAMILY COMPOSITION OF ${data.nextYear} WITH INCOME DETAILS OF ${data.year} :`, true)], { after: 80 }),
+                        cPar([ul(`FAMILY COMPOSITION OF ${data.nextYear} WITH INCOME DETAILS OF ${data.year} :`, true)], { after: 60 }),
                         famTable,
 
-                        jPar([rb('NOTE: '), r(`The average official exchange rate @ 1 Euro = INR ${data.rate} for year ${data.year} .`)], { before: 140, after: 280 }),
+                        jPar([rb('NOTE: '), r(`The average official exchange rate @ 1 Euro = INR ${data.rate} for year ${data.year} .`)], { before: 100, after: 0 }),
+                        new Paragraph({ children: [br()] }),
 
-                        cPar([rb('NO PROPERTY DETAILS AS PER 31'), sup('ST'), rb(` DECEMBER ${data.year} .`)], { after: 120 }),
+                        cPar([
+                            new TextRun({ text: 'NO PROPERTY DETAILS AS PER 31', bold: true, font: 'Calibri', size: N, underline: { type: 'single' } }),
+                            new TextRun({ text: 'ST', superScript: true, font: 'Calibri', size: N, underline: { type: 'single' } }),
+                            new TextRun({ text: ` DECEMBER ${data.year} .`, bold: true, font: 'Calibri', size: N, underline: { type: 'single' } })
+                        ], { after: 60 }),
 
-                        jPar([
-                            r('This is to certify that as per the government records Mr. '), rb(fName),
-                            r(' F/O '), r(aTitle + ' '), rb(aName),
-                            r(' does not have any movable or immovable property of their own. That Mr. '), rb(fName),
-                            r(' F/O '), r(aTitle + ' '), rb(aName),
-                            r(' along with family members lives in R/O NO '), rb(data.houseAddr),
-                            r(' rented house bearing. The Annual rent of the house is Rs. '),
-                            rb(data.rent ? data.rent + '/-' : '___/-'),
-                            r(data.rentEuro ? ` which is equal to Euro ${data.rentEuro} (approximately).` : '.'),
-                        ], { after: 120 }),
-
+                        new Table({
+                            width: { size: 100, type: WidthType.PERCENTAGE },
+                            borders: tableBorders,
+                            rows: [
+                                new TableRow({
+                                    children: [
+                                        new TableCell({
+                                            borders: tableBorders,
+                                            margins: { top: 150, bottom: 150, left: 150, right: 150 },
+                                            children: [
+                                                jPar([
+                                                    r('This is to certify that as per the government records Mr. '), rb(fName),
+                                                    r(' F/O '), r(aTitle + ' '), rb(aName),
+                                                    r(' does not have any movable or immovable property of their own. That Mr. '), rb(fName),
+                                                    r(' F/O '), r(aTitle + ' '), rb(aName),
+                                                    r(' along with family members lives in R/O NO '), rb(data.houseAddr),
+                                                    r(' rented house bearing. The Annual rent of the house is Rs. '),
+                                                    rb(data.rent ? data.rent + '/-' : '___/-'),
+                                                    r(data.rentEuro ? ` which is equal to Euro ${data.rentEuro} (approximately).` : '.'),
+                                                ], { after: 0 })
+                                            ]
+                                        })
+                                    ]
+                                })
+                            ]
+                        }),
+                        new Paragraph({ children: [br()] }),
                         ...bulletParas,
                         new Paragraph({ children: [br()] }),
 
@@ -1441,22 +1518,76 @@
                             r(`. I will greatly appreciate if you consider ${data.pronoun} request, so that `),
                             r(data.pronoun === 'his' ? 'he' : data.pronoun === 'her' ? 'she' : 'he/she'),
                             r(` may achieve ${data.pronoun === 'his' ? 'his' : data.pronoun === 'her' ? 'her' : 'his/her'} academic goals without any financial support from me because I am in acute financial hardship.`),
-                        ], { before: 0, after: 100 }),
+                        ], { before: 0, after: 80 }),
 
-                        jPar([r('The above statements made are true and correct to the best of my knowledge and belief.')], { after: 100 }),
+                        jPar([r('The above statements made are true and correct to the best of my knowledge and belief.')], { after: 0 }),
+                        new Paragraph({ children: [br()] }),
 
-                        jPar([
-                            r('Note: This Certificate is valid and issued for study purpose in abroad to '),
-                            r(data.appTitle + ' '), rb(data.appName), r(' .'),
-                        ], { after: 420 }),
-
-                        lPar([rb(`Place: - ${data.place}`)]),
-                        lPar([rb(`Date: - ${data.date}`)]),
+                        lPar([
+                            rb(`Note: This Certificate is valid and issued for study purpose in abroad to ${data.appTitle} ${data.appName} .`),
+                            br(),
+                            br(),
+                            rb(`Place: - ${data.place}`),
+                            br(),
+                            rb(`Date: - ${data.date}`)
+                        ], { after: 0 }),
                     ],
                 }],
             });
 
             return Packer.toBlob(doc);
+        }
+
+        /* ───────────────────────────────────────────
+           TESTRUN HANDLER (DUMMY DATA)
+        ─────────────────────────────────────────── */
+        async function testDummyDownload() {
+            // Fill state & place
+            id('topStateSelect').value = 'Madhya Pradesh';
+            syncState('Madhya Pradesh');
+            updateCities();
+            id('place').value = 'Bhopal';
+
+            // Fill basic details
+            id('yearSelect').value = '2025';
+            id('appTitle').value = 'Ms.';
+            id('appName').value = 'Priya Sharma';
+            id('dadName').value = 'Rajesh Sharma';
+            id('address').value = 'A-123, Rosewood Apartments';
+            id('houseAddr').value = 'A-123, Rosewood Apartments';
+            id('annRent').value = '150000';
+            id('country').value = 'Italy';
+            id('hePronoun').value = 'her';
+            id('relWord').value = 'daughter';
+            id('declChk').checked = true;
+
+            // Trigger manual update
+            id('appTitle').dispatchEvent(new Event('change'));
+
+            // Generate fake family
+            id('famBody').innerHTML = '';
+            rowIdx = 0;
+            const dummyMembers = [
+                { title: 'Mr.', name: 'Rajesh Sharma', dob: '1975-04-12', rel: 'Father', occ: 'Private Job', income: '450000' },
+                { title: 'Mrs.', name: 'Anita Sharma', dob: '1979-08-23', rel: 'Mother', occ: 'Housewife', income: 'NIL' },
+                { title: 'Ms.', name: 'Priya Sharma', dob: '2004-01-15', rel: 'Myself (Applicant)', occ: 'Student', income: 'NIL' },
+                { title: 'Mr.', name: 'Harshit Sharma', dob: '2008-05-10', rel: 'Brother', occ: 'Student', income: 'NIL' },
+                { title: 'Ms.', name: 'Kritika Sharma', dob: '2010-09-22', rel: 'Sister', occ: 'Student', income: 'NIL' }
+            ];
+
+            dummyMembers.forEach(m => {
+                addRow();
+                const tr = id('famBody').lastElementChild;
+                tr.querySelector('[data-col=title]').value = m.title;
+                tr.querySelector('[data-col=name]').value = m.name;
+                tr.querySelector('[data-col=dob]').value = m.dob;
+                tr.querySelector('[data-col=rel]').value = m.rel;
+                tr.querySelector('[data-col=occ]').value = m.occ;
+                tr.querySelector('[data-col=income]').value = m.income;
+            });
+
+            liveUpdate();
+            toast('Dummy data filled successfully! You can now review it visually before downloading.', 'ok');
         }
 
         /* ───────────────────────────────────────────
