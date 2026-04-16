@@ -731,8 +731,6 @@
         </div>
         <div class="tbtns">
             <button class="btn btn-out" onclick="window.print()">🖨 Print</button>
-            <button type="button" class="btn btn-out" onclick="testDummyDownload()"
-                style="background:#fef08a; border-color:#eab308; color:#854d0e;">🧪 Test Dummy Data</button>
             <button class="btn btn-blue" id="dlBtn" onclick="handleDownload()">⬇ Download .docx</button>
         </div>
     </div>
@@ -1541,58 +1539,6 @@
             });
 
             return Packer.toBlob(doc);
-        }
-
-        /* ───────────────────────────────────────────
-           TESTRUN HANDLER (DUMMY DATA)
-        ─────────────────────────────────────────── */
-        async function testDummyDownload() {
-            // Fill state & place
-            id('topStateSelect').value = 'Madhya Pradesh';
-            syncState('Madhya Pradesh');
-            updateCities();
-            id('place').value = 'Bhopal';
-
-            // Fill basic details
-            id('yearSelect').value = '2025';
-            id('appTitle').value = 'Ms.';
-            id('appName').value = 'Priya Sharma';
-            id('dadName').value = 'Rajesh Sharma';
-            id('address').value = 'A-123, Rosewood Apartments';
-            id('houseAddr').value = 'A-123, Rosewood Apartments';
-            id('annRent').value = '150000';
-            id('country').value = 'Italy';
-            id('hePronoun').value = 'her';
-            id('relWord').value = 'daughter';
-            id('declChk').checked = true;
-
-            // Trigger manual update
-            id('appTitle').dispatchEvent(new Event('change'));
-
-            // Generate fake family
-            id('famBody').innerHTML = '';
-            rowIdx = 0;
-            const dummyMembers = [
-                { title: 'Mr.', name: 'Rajesh Sharma', dob: '1975-04-12', rel: 'Father', occ: 'Private Job', income: '450000' },
-                { title: 'Mrs.', name: 'Anita Sharma', dob: '1979-08-23', rel: 'Mother', occ: 'Housewife', income: 'NIL' },
-                { title: 'Ms.', name: 'Priya Sharma', dob: '2004-01-15', rel: 'Myself', occ: 'Student', income: 'NIL' },
-                { title: 'Mr.', name: 'Harshit Sharma', dob: '2008-05-10', rel: 'Brother', occ: 'Student', income: 'NIL' },
-                { title: 'Ms.', name: 'Kritika Sharma', dob: '2010-09-22', rel: 'Sister', occ: 'Student', income: 'NIL' }
-            ];
-
-            dummyMembers.forEach(m => {
-                addRow();
-                const tr = id('famBody').lastElementChild;
-                tr.querySelector('[data-col=title]').value = m.title;
-                tr.querySelector('[data-col=name]').value = m.name;
-                tr.querySelector('[data-col=dob]').value = m.dob;
-                tr.querySelector('[data-col=rel]').value = m.rel;
-                tr.querySelector('[data-col=occ]').value = m.occ;
-                tr.querySelector('[data-col=income]').value = m.income;
-            });
-
-            liveUpdate();
-            toast('Dummy data filled successfully! You can now review it visually before downloading.', 'ok');
         }
 
         /* ───────────────────────────────────────────
