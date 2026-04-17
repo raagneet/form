@@ -1100,6 +1100,14 @@
             // Mirror father/guardian name
             setMirror('m_dadName', fName, '________');
             setMirror('m_dadName2', fName, '________');
+            
+            if (!window.houseAddrManuallyEdited) {
+                const ha = id('houseAddr');
+                if (ha) {
+                    ha.value = val('address');
+                    updateAutoWidth(ha);
+                }
+            }
 
             // Euro rent calculation
             const rate = FIXED_EURO_RATE;
@@ -1232,11 +1240,16 @@
         /* ───────────────────────────────────────────
            LISTENATORS
         ─────────────────────────────────────────── */
-        ['appName', 'appTitle', 'dadName', 'address', 'annRent',
-            'houseAddr', 'hePronoun', 'relWord', 'country', 'yearSelect', 'topStateSelect', 'stateSelect', 'place'].forEach(fid => {
+        ['appName', 'appTitle', 'dadName', 'address', 'annRent', 'houseAddr',
+            'hePronoun', 'relWord', 'country', 'yearSelect', 'topStateSelect', 'stateSelect', 'place'].forEach(fid => {
                 const el = id(fid);
                 if (el) {
-                    el.addEventListener('input', liveUpdate);
+                    el.addEventListener('input', () => {
+                        if (fid === 'houseAddr') {
+                            window.houseAddrManuallyEdited = (el.value !== '');
+                        }
+                        liveUpdate();
+                    });
                     el.addEventListener('change', liveUpdate);
                 }
             });
