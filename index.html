@@ -75,7 +75,7 @@
 
         /* ── Toolbar ── */
         .toolbar {
-            max-width: 920px;
+            max-width: 1000px;
             margin: 0 auto 18px;
             display: flex;
             align-items: center;
@@ -174,7 +174,7 @@
    A4 DOC CARD
 ═══════════════════════════════════════════ */
         .a4 {
-            max-width: 920px;
+            max-width: 1000px;
             margin: 0 auto;
             background: var(--doc-bg);
             box-shadow: 0 2px 4px rgba(0, 0, 0, .1), 0 16px 48px rgba(0, 0, 0, .18);
@@ -191,7 +191,7 @@
         }
 
         .a4-body {
-            padding: 54px 76px 66px;
+            padding: 40px 50px 50px;
         }
 
         /* ── Gov Header ── */
@@ -394,7 +394,8 @@
             width: 100%;
             border-collapse: collapse;
             font-family: var(--serif);
-            font-size: 12px;
+            font-size: 11px;
+            table-layout: fixed;
         }
 
         .fam-tbl thead tr {
@@ -403,14 +404,16 @@
         }
 
         .fam-tbl thead th {
-            padding: 8px 6px;
+            padding: 4px 3px;
             font-weight: 700;
-            font-size: 11px;
-            letter-spacing: .04em;
+            font-size: 10px;
+            letter-spacing: .01em;
             text-align: center;
             border-right: 1px solid #bbb;
             border-bottom: 1px solid #bbb;
-            white-space: nowrap;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.3;
         }
 
         .fam-tbl thead th:last-child {
@@ -419,7 +422,7 @@
 
         .fam-tbl tbody td {
             border: 1px solid #bbb;
-            padding: 4px 5px;
+            padding: 2px 2px;
             vertical-align: middle;
         }
 
@@ -435,9 +438,9 @@
             width: 100%;
             border: 1px solid #ccc;
             border-radius: 2px;
-            padding: 4px 6px;
+            padding: 2px 3px;
             font-family: var(--serif);
-            font-size: 12px;
+            font-size: 11px;
             color: var(--ink);
             background: #fff;
             outline: none;
@@ -765,9 +768,8 @@
                         <select class="bl" style="min-width:50px; font-style:normal; color:#444; font-size:12.5px"
                             id="yearSelect" onchange="liveUpdate()" required>
                             <option value="2024">2024</option>
-                            <option value="2025" selected>2025</option>
-                            <option value="2026">2026</option>
-                            <option value="2027">2027</option>
+                            <option value="2025">2025</option>
+                            <option value="2024-25" selected>2024-25</option>
                         </select>
                     </div>
                 </div>
@@ -793,21 +795,23 @@
                 </p>
 
                 <!-- ▌ FAMILY TABLE -->
-                <div class="sec-hd" style="text-align: left;">(A) Family Composition of <span id="m_year2">2026</span> with Income Details of <span
-                        id="m_year3">2025</span> :</div>
+                <div class="sec-hd" style="text-align: left;">(A) Family Composition of <span id="m_year2">2026</span>
+                    with Income Details of <span id="m_year3">2025</span> :</div>
 
                 <div class="tbl-wrap">
                     <table class="fam-tbl">
                         <thead>
                             <tr>
-                                <th style="width:34px;">Sr.</th>
-                                <th style="width:50px;">Title</th>
-                                <th>Name of Member</th>
-                                <th style="width:102px;">Date of Birth</th>
-                                <th style="width:112px;">Relationship</th>
-                                <th>Occupation</th>
-                                <th>Gross Income – <span id="m_year4_table">2025</span></th>
-                                <th style="width:34px;">✕</th>
+                                <th style="width:28px;">Sr.</th>
+                                <th style="width:46px;">Title</th>
+                                <th style="width:120px;">Name of Member</th>
+                                <th style="width:90px;">Date of Birth</th>
+                                <th style="width:90px;">Relationship</th>
+                                <th style="width:110px;">Occupation</th>
+                                <th id="th_income_1" style="width:100px;"><span id="th_inc1_text">Gross Income – </span><span
+                                        id="m_year4_table">2025</span></th>
+                                <th id="th_income_2" style="display:none; width:100px;">Gross Income – 25</th>
+                                <th style="width:28px;">✕</th>
                             </tr>
                         </thead>
                         <tbody id="famBody"></tbody>
@@ -822,7 +826,8 @@
                 </div>
 
                 <!-- ▌ NO PROPERTY HEADING -->
-                <div class="sec-hd" style="text-align: left;">(B) NO PROPERTY DETAILS AS PER 31<sup>ST</sup> DECEMBER <span id="m_year5">2025</span> .
+                <div class="sec-hd" style="text-align: left;">(B) NO PROPERTY DETAILS AS PER 31<sup>ST</sup> DECEMBER
+                    <span id="m_year5">2025</span> .
                 </div>
 
                 <!-- Main no-property paragraph -->
@@ -838,8 +843,8 @@
                     family members lives in R/O NO&nbsp;<input class="bl lg" id="houseAddr" type="text"
                         placeholder="House No. &amp; Street (e.g. A-181, Veena Nagar…)" required>&nbsp;rented house
                     bearing.
-                    The Annual rent of&nbsp;the house is Rs.&nbsp;<input class="bl num" id="annRent" type="number"
-                        step="100" min="0" placeholder="12000" required>/–&nbsp;which is equal to Euro&nbsp;<b
+                    The Annual rent of&nbsp;the house is Rs.&nbsp;<input class="bl num" id="annRent" type="text"
+                        inputmode="numeric" pattern="[0-9,]*" placeholder="12000" required>&nbsp;which is equal to Euro&nbsp;<b
                         id="rentEuro">—</b>&nbsp;(approximately).
                 </p>
 
@@ -1076,14 +1081,24 @@
             const fName = getFatherName();
 
             // Selected Years
-            const startYear = parseInt(val('yearSelect')) || 2025;
-            const nextYear = startYear + 1;
+            const startYear = val('yearSelect') || '2025';
+            const nextYear = '2026';
             id('m_year1').textContent = startYear;
             id('m_year2').textContent = nextYear;
             id('m_year3').textContent = startYear;
             id('m_year4').textContent = startYear;
-            id('m_year4_table').textContent = startYear;
             id('m_year5').textContent = startYear;
+
+            const showTwo = (startYear === '2024-25');
+            document.querySelectorAll('#th_income_2, .td-inc-2').forEach(el => el.style.display = showTwo ? '' : 'none');
+            if (showTwo) {
+                id('th_inc1_text').textContent = 'Gross Income for the Year - 2024';
+                id('m_year4_table').textContent = '';
+                id('th_income_2').textContent = 'Gross Income for the Year - 25';
+            } else {
+                id('th_inc1_text').textContent = 'Gross Income – ';
+                id('m_year4_table').textContent = startYear;
+            }
 
             // Mirror applicant name
             setMirror('m_appName', appName, '________');
@@ -1100,7 +1115,7 @@
             // Mirror father/guardian name
             setMirror('m_dadName', fName, '________');
             setMirror('m_dadName2', fName, '________');
-            
+
             if (!window.houseAddrManuallyEdited) {
                 const ha = id('houseAddr');
                 if (ha) {
@@ -1112,7 +1127,8 @@
             // Euro rent calculation
             const rate = FIXED_EURO_RATE;
             id('exRate').textContent = rate;
-            const rent = parseFloat(val('annRent')) || 0;
+            const rentRaw = val('annRent').replace(/[^0-9.]/g, '');
+            const rent = parseFloat(rentRaw) || 0;
             id('rentEuro').textContent = rent ? (rent / rate).toFixed(2) : '—';
 
             // Pronoun mirrors in request note
@@ -1136,7 +1152,7 @@
             const fName = getFatherName();
             const aName = val('appName') || '________';
             const aTitle = val('appTitle') || 'Mr.';
-            const startYear = parseInt(val('yearSelect')) || 2025;
+            const startYear = val('yearSelect') || '2025';
 
             if (!rows.length) {
                 ul.innerHTML = '<li><span class="ph-msg">← Add family members to auto-generate property statements.</span></li>';
@@ -1195,7 +1211,7 @@
             tr.innerHTML = `
     <td class="sr-num">${tbody.children.length + 1}</td>
     <td>
-      <select class="ti" data-col="title" style="width:60px;" required>
+      <select class="ti" data-col="title" style="width:44px;" required>
         <option>Mr.</option><option>Mrs.</option><option>Ms.</option><option>Mx.</option>
       </select>
     </td>
@@ -1211,8 +1227,9 @@
         <option value="Sister">Sister</option>
       </select>
     </td>
-    <td><input class="ti" data-col="occ"    type="text" placeholder="e.g. Student / Private Job" required></td>
-    <td><input class="ti" data-col="income" type="text" placeholder="e.g. 78,000 or NIL" required></td>
+    <td><input class="ti" data-col="occ"    type="text" placeholder="Occupation" required></td>
+    <td class="td-inc-1"><input class="ti" data-col="income" type="text" placeholder="78000 or NIL" required></td>
+    <td class="td-inc-2" style="display:none;"><input class="ti" data-col="income_2" type="text" placeholder="78000 or NIL"></td>
     <td><button type="button" class="del-btn" onclick="removeRow(this)" title="Remove">✕</button></td>
   `;
 
@@ -1274,14 +1291,26 @@
         ─────────────────────────────────────────── */
         function collectData() {
             const rate = FIXED_EURO_RATE;
-            const rent = parseFloat(val('annRent')) || 0;
+            const rentRaw = val('annRent').replace(/[^0-9.]/g, '');
+            const rent = parseFloat(rentRaw) || 0;
             const fName = getFatherName();
             const aName = val('appName');
             const aTitle = val('appTitle');
-            const startYear = parseInt(val('yearSelect')) || 2025;
-            const nextYear = startYear + 1;
+            const startYear = val('yearSelect') || '2025';
+            const nextYear = '2026';
 
             const members = [];
+            // Returns { inr: '78000 /- INR', euro: 'EURO- 0.79' } or { inr: 'NIL', euro: '' }
+            const getIncParts = (incStr) => {
+                const incNum = parseFloat(incStr.replace(/[^0-9.]/g, ''));
+                const isNil = /^\s*nil\s*$/i.test(incStr) || incStr.trim() === '' || incNum === 0 || isNaN(incNum);
+                if (isNil) return { inr: 'NIL', euro: '' };
+                return {
+                    inr: incStr + ' /- INR',
+                    euro: `(EURO- ${(incNum / rate).toFixed(2)})`
+                };
+            };
+
             id('famBody').querySelectorAll('tr').forEach((row, i) => {
                 const title = row.querySelector('[data-col=title]')?.value || 'Mr.';
                 const name = row.querySelector('[data-col=name]')?.value.trim() || '';
@@ -1289,19 +1318,17 @@
                 const rel = row.querySelector('[data-col=rel]')?.value || '';
                 const occ = row.querySelector('[data-col=occ]')?.value.trim() || '';
                 const income = row.querySelector('[data-col=income]')?.value.trim() || '';
+                const income2 = row.querySelector('[data-col=income_2]')?.value.trim() || '';
 
                 const dobFmt = dob
                     ? new Date(dob).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
                     : '';
 
-                const incNum = parseFloat(income.replace(/[^0-9.]/g, ''));
-                const isNil = /^\s*nil\s*$/i.test(income) || income.trim() === '' || incNum === 0 || isNaN(incNum);
-                const euroAnn = (!isNaN(incNum) && incNum > 0 && !isNil)
-                    ? ` (EURO- ${(incNum / rate).toFixed(2)})`
-                    : '';
-                const incFull = isNil ? 'NIL' : income + ' /- INR' + euroAnn;
-
-                members.push({ sr: i + 1, title, name, dob: dobFmt, rel, occ, income: incFull });
+                members.push({
+                    sr: i + 1, title, name, dob: dobFmt, rel, occ,
+                    income: getIncParts(income),
+                    income2: getIncParts(income2)
+                });
             });
 
             const fetchedState = val('stateSelect');
@@ -1334,21 +1361,28 @@
            VALIDATION
         ─────────────────────────────────────────── */
         function validate() {
-            const sf = id('sf');
-            if (!sf.checkValidity()) {
-                sf.reportValidity();
+            // Check required text/select fields manually (avoids HTML5 type/pattern rejecting rent)
+            if (!val('appName')) { toast('Enter Applicant Name.', 'err'); id('appName').focus(); return false; }
+            if (!val('appTitle')) { toast('Select Applicant Title.', 'err'); return false; }
+            if (!val('dadName')) { toast('Enter Father / Guardian Name.', 'err'); id('dadName').focus(); return false; }
+            if (!val('address')) { toast('Enter Address.', 'err'); id('address').focus(); return false; }
+            if (!val('topStateSelect')) { toast('Select a State from the top first.', 'err'); return false; }
+            if (!val('stateSelect')) { toast('Select State in the address line.', 'err'); return false; }
+            const rentRaw = val('annRent').replace(/[^0-9.]/g, '');
+            if (!rentRaw || isNaN(parseFloat(rentRaw))) {
+                toast('Enter a valid Annual Rent (numbers only).', 'err');
+                id('annRent').focus();
                 return false;
             }
-            if (!val('topStateSelect')) {
-                toast('Select a State from the top first.', 'err');
-                return false;
-            }
-            if (!val('place')) {
-                toast('Select your Place of Issue (City).', 'err');
-                return false;
-            }
+            if (!val('place')) { toast('Select your Place of Issue (City).', 'err'); return false; }
+            if (!val('issueDate')) { toast('Select Issue Date.', 'err'); return false; }
             if (!id('famBody').children.length) {
                 toast('Add at least one family member.', 'err');
+                return false;
+            }
+            if (!id('declChk').checked) {
+                toast('Please check the declaration checkbox.', 'err');
+                id('declChk').focus();
                 return false;
             }
             // Check library
@@ -1396,24 +1430,51 @@
                 });
             }
 
+            // Income cell: INR amount on line 1, Euro on line 2 (if not NIL)
+            function mkIncCell(incObj) {
+                const children = [
+                    new TextRun({ text: incObj.inr, font: 'Calibri', size: N })
+                ];
+                if (incObj.euro) {
+                    children.push(new TextRun({ break: 1 }));
+                    children.push(new TextRun({ text: incObj.euro, font: 'Calibri', size: N }));
+                }
+                return new TableCell({
+                    children: [new Paragraph({
+                        alignment: AlignmentType.LEFT,
+                        children,
+                    })],
+                    margins: { top: 60, bottom: 60, left: 100, right: 100 },
+                });
+            }
+
+            const showTwo = data.year === '2024-25';
+            const headers = ['Sr. No', 'Name of Member', 'Date of Birth', 'Relationship', 'Occupation'];
+            if (showTwo) {
+                headers.push('Gross Income for the Year - 2024', 'Gross Income for the Year - 25');
+            } else {
+                headers.push(`Gross Income for the Year-${data.year}`);
+            }
+
             const hdrRow = new TableRow({
                 tableHeader: true,
-                children: [
-                    ['Sr. No', 'Name of Member', 'Date of Birth', 'Relationship', 'Occupation', `Gross Income for the Year-${data.year}`]
-                        .map(h => mkCell(h, true, true, false)),
-                ].flat(),
+                children: headers.map(h => mkCell(h, true, true, false)),
             });
 
-            const dataRows = data.members.map(m => new TableRow({
-                children: [
+            const dataRows = data.members.map(m => {
+                const cells = [
                     mkCell(m.sr + '.', false, true),
                     mkCell(m.title + ' ' + m.name),
                     mkCell(m.dob, false, true),
                     mkCell(m.rel),
                     mkCell(m.occ),
-                    mkCell(m.income),
-                ],
-            }));
+                    mkIncCell(m.income)
+                ];
+                if (showTwo) {
+                    cells.push(mkIncCell(m.income2));
+                }
+                return new TableRow({ children: cells });
+            });
 
             const famTable = new Table({
                 width: { size: 100, type: WidthType.PERCENTAGE },
